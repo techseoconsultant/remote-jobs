@@ -1,0 +1,9 @@
+{
+  "name": "stock-decision-tool",
+  "private": true,
+  "type": "module",
+  "description": "Shadow logger for SOP Momentum Continuation Entry v2.0. No order code.",
+  "dependencies": {
+    "ai": "^7.0.107"
+  }
+}
