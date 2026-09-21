@@ -80,7 +80,7 @@ Score these on every logged trigger for 60 trading days. Adopt a filter only if 
 - F2, squeeze fuel (grade D). Short interest over 20 percent of float, days to cover over 5, borrow cost over 30 percent. Free sources are twice-monthly and delayed; log the values you can get and score them.
 - F3, dealer gamma regime (grade D). Net gamma exposure below zero at the open, or price above the call wall. Free tier data is 5 requests a day; enough for a daily flag.
 - F4, catalyst present (grade C). At least one symbol-tagged headline since the prior close. Already available from the Benzinga feed.
-- Jev (unknown). Ask Jev at 09:58 to score each candidate 0 to 100 for continuation. Score its ranking exactly as the Pre-Build Review specifies. Jev is a filter candidate here, not the decision maker.
+- Jev (unknown). Ask Jev on the bar ending 09:55 to score each candidate 0 to 100 for continuation. Score its ranking exactly as the Pre-Build Review specifies. Jev is a filter candidate here, not the decision maker.
 
 ## 6. Data required
 

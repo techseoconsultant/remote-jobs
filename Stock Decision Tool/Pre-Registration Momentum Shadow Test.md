@@ -1,14 +1,14 @@
 # Pre-Registration: Momentum Continuation Shadow Test
 
-Version 1.0. Written 2026-09-21, before the first logged session. This file is frozen. Its SHA-256 hash is quoted in the session log and in the repository history. Any change to this file or to the SOP parameters restarts the clock.
+Version 1.1. Written 2026-09-21, before the first scored session. Supersedes v1.0 after the independent code review; the clock had not started. This file is frozen. Its SHA-256 hash is quoted in the session log and in the repository history. Any change to this file or to the SOP parameters restarts the clock.
 
 ## What is being tested
 
-SOP Momentum Continuation Entry v2.0, exactly as written in "SOP Momentum Continuation Entry.md" at the commit that accompanies this file. No parameter may be tuned during the test window.
+SOP Momentum Continuation Entry v2.1, exactly as written in "SOP Momentum Continuation Entry.md" (SHA-256 08c3a7da75c0f51a9f018e1e647db66ff2f00d17e29c370e5a1fc013d11b69ae), including its v2.1 changelog, at the commit that accompanies this file. The backtest scripts behind the frozen definitions are committed under docs/Backtest Scripts. No parameter may be tuned during the test window.
 
 ## Window
 
-60 consecutive trading days from the first logged session. The exchange calendar defines trading days. Early-close sessions count if the first hour completed.
+Day 1 is the first trading session at or after Micah's written approval of SOP v2.1 in his own words; sessions logged before that approval are unscored smoke days. 60 consecutive trading days from day 1. The exchange calendar defines trading days. Early-close sessions count if the first hour completed.
 
 ## Universe and cadence
 
