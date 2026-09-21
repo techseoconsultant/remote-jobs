@@ -5,18 +5,65 @@ Date: 2026-09-21. Author: Claude, for Micah. Status: review only. No build code 
 ## TLDR
 
 - Verdict: build with changes. Build the tool as a scored shadow signal with no order path. Do not copy jev-trader's 30-second horizon or its maker-spread economics onto US stocks.
+- Your goal, tested on your data: find what is rising, buy it as it rises, sell it as it turns, same day, dozens of names. On 1,208 mover-days from the last 21 sessions, the only version that made money was one round trip per name: buy a gap-up that is still above its open and VWAP at 10:00, hold with a wide trailing stop, sell at the stop or the close. It earned about 26 basis points a trade before costs and 6 to 12 after 10 basis points a side, on about 19 names a day, positive on 10 of 21 days, and not yet statistically distinguishable from zero. Your literal version, buy on a three-bar rise and sell on a three-bar fall all day, broke even before costs and lost 100 to 400 basis points a day after them, because it flips about ten times per name.
+- Faster is not better. Per-second decisions were tested by jev-hft on Bitcoin: fees ate the signal. One-minute exits were worse than five-minute exits here at every stop width but the widest. A mover's average one-minute move is 19.6 basis points, about two round trips of cost. Watch by the second if you like; decide a few times a day.
 - The kill assumption: Jev can call the direction of liquid US stocks above the cost breakeven. From 21 days of your own Alpaca data, a trade-every-bar tool needs 69.5 percent accuracy at 30 minutes, 59.7 percent to the close, and 53.1 percent to the next-day close, at 5 basis points per side. Every comparable says the intraday horizons fail. Only the daily horizon is open.
 - Jev's own live crypto record is negative: about 1.02 million dry-run decisions, a 45.6 percent hit rate on the last 1,000, and a running loss. The jev-hft study found that a free order-book rule explained almost all of Jev's short-term signal, and fees ate the profit.
 - What this improves: speed, cost, and measurement throughput. Jev answers in about a quarter second through the gateway, against 5 to 15 seconds for a Fable call and minutes for a Claude session run. A name-decision costs about 0.0001 USD on Jev, against about 0.007 USD on Fable when batched, so roughly 65 times cheaper, and it uses none of your Claude plan quota. That lets the tool score every name on every bar all day, about 7,800 decisions a day at 100 names, so the edge question gets a real answer in weeks. It does not improve accuracy. That is the unknown the test measures.
 - Cost is not the constraint. Jev costs 0.042 USD per million input tokens, so 100 names on 5-minute bars cost under 1 USD a day. Sample size is not the constraint either. Accuracy against costs is.
 - Three blockers before any code: add a card to the Vercel team, because every gateway call returns 403 today; rotate the gateway key that was pasted into chat; your Claude weekly limit resets 2026-09-22 at 23:00 UTC.
-- Decisions for you, as options. A (recommended): 100-name universe, Jev questions every 5-minute bar, scored at 30 minutes, the close, and the next-day close, shadow only, 20 trading days, then a go or no-go on the pre-registered gate. B: a literal jev-trader clone on 20 names with only the 30-minute horizon. It will almost surely fail the gate, but it is the fastest thing to look at. C: do not build. Keep STOCK-Auto's trend engine as the only live logic.
+- Decisions for you, as options. A (recommended): the same-day momentum design in section 1b. Universe = each day's gap-ups (about 30 names). Jev ranks them at 10:00 and judges each pullback on 1-minute bars. One round trip per name per day. Scored as a shadow book for 20 trading days against the mechanical rule it must beat. B: a literal jev-trader clone, buy or sell every bar with no abstaining. The data above says it loses at any cost level; it is here only because it is what was first asked for. C: do not build. Keep STOCK-Auto's trend engine as the only live logic.
+- Account limits you cannot design around: a margin account under 25,000 USD is limited to three day trades per five business days (pattern day trader rule). A cash account avoids that rule but each dollar trades once a day, and STOCK-Auto enforces settled cash only. Dozens of round trips a day need at least 25,000 USD in margin, and at a few hundred dollars a name the best rule above earns about 0.25 to 0.50 USD a trade. A profit every day is not a realistic target for this strategy; the best rule was positive on 10 to 13 of 21 days.
 
 ## 1. Goal in one line
 
 Ask Jev, every 5-minute bar of the US regular session, typed questions about each stock in a fixed watchlist, show the answers live in the jev-trader style, score each answer against what the price then did, and hand STOCK-Auto a signal feed that it reads in shadow mode until the gate passes.
 
 Population: liquid US single stocks. Recommended: the roughly 100 largest by dollar volume (an S&P 100 proxy). The 20-name list (AAPL, MSFT, NVDA, AMZN, META, GOOGL, TSLA, AMD, AVGO, NFLX, JPM, XOM, LLY, UNH, COST, BAC, WMT, CRM, ORCL, PLTR) is the fallback.
+
+## 1b. Your same-day momentum goal, tested
+
+Goal as you stated it: figure out what is going up, buy it as it goes up, sell it as it goes down, same day, for dozens or hundreds of stocks, to realize a profit each day, with Jev deciding fast.
+
+Test design (fixed before running): every trading day from 2026-08-20 to 2026-09-18 (21 sessions), screen the whole US equity universe (12,641 symbols with daily bars) for two mover sets that are known at the open: gap-ups (open at least 3 percent above the prior close) and prior-day movers (up at least 5 percent yesterday), both with 20-day average dollar volume of at least 20 million USD and price between 5 and 1,250 USD, top 30 of each per day. That gave 1,226 symbol-days, about 58 a day, and 1,208 with full consolidated (SIP) 5-minute bars. Decisions at bar closes, fills at the next bar's open, costs applied per side.
+
+What the movers did on their own, 10:00 ET to the close:
+
+| Set | Symbol-days | Mean, bps | Median, bps | Share positive |
+|---|---|---|---|---|
+| Gap-ups | 604 | +8.6 | +10.3 | 51.2 percent |
+| Prior-day movers | 604 | -54.4 | -34.4 | 44.0 percent |
+
+Yesterday's winners fade. Today's gappers barely continue. Rules tested on all 1,208:
+
+| Rule | Trades | Win rate | Mean, gross | Mean at 5 bps a side | Mean at 10 bps | Mean at 20 bps | Positive days (gross, at 10 bps) |
+|---|---|---|---|---|---|---|---|
+| R0 hold every mover 10:00 to close | 1,208 | 50 percent | -9.7 | -19.7 | -29.7 | -49.7 | 10/21, 8/21 |
+| R1 buy strength at 10:00 (above open and VWAP), sell at close | 395 | 50 percent | -7.2 | -17.2 | -27.2 | -47.2 | 10/21, 9/21 |
+| R2 buy strength at 10:00, trailing stop 1.5 ATR | 395 | 44 percent | +26.2 | +16.2 | +6.2 | -13.8 | 13/21, 10/21 |
+| R2 with a 2.5 ATR stop | 395 | 45 percent | +32.1 | +22.1 | +12.1 | -7.9 | 12/21, 9/21 |
+| R3 opening range breakout, trailing stop | 508 | 44 percent | +18.0 | +8.0 | -2.0 | -22.0 | 9/21, 7/21 |
+| R4 buy on 3-bar rise, sell on 3-bar fall, all day (your literal rule) | 1,208 symbol-days, about 10 round trips each | 46 percent | -0.2 | -99.3 | -198.5 | -396.8 | 11/21, 1/21 |
+
+All returns in basis points per trade. The R2 gross mean has a 90 percent interval of -7 to +59, so it is not yet distinguishable from zero. Its median trade loses about 40 basis points; the mean is carried by a few large winners, which is normal for a trailing-stop rule and means results swing day to day.
+
+Faster observation, tested: the same R2 entries with exits judged on 1-minute bars instead of 5-minute bars.
+
+| Stop width | 5-minute exits, gross | 1-minute exits, gross | 5-minute at 10 bps | 1-minute at 10 bps |
+|---|---|---|---|---|
+| 1.0 ATR | +18.3 | -3.4 | -1.7 | -23.4 |
+| 1.5 ATR | +26.2 | +2.5 | +6.2 | -17.5 |
+| 2.5 ATR | +32.1 | +24.6 | +12.1 | +4.6 |
+
+Finer exits stop you out on noise. The average absolute 1-minute move on these names is 19.6 basis points, about two round trips of cost. Per-second decisions sit below that, where jev-hft already found on Bitcoin that fees consumed the signal. Speed of reaction is useful; frequency of decision is the enemy.
+
+What this means for the design:
+
+1. Universe: the day's gap-ups, about 30 names. Drop prior-day movers.
+2. Cadence: watch on 1-minute bars (or faster) so exits are not late, but decide entries once, at 10:00 ET, and allow at most one round trip per name per day.
+3. Jev's two jobs, both scorable: at 10:00, rank the gap-ups by the probability that the name closes above its 10:00 price, so the tool buys the top of the list instead of all of them; on every 1-minute bar while in a position, judge whether the pullback is a reversal or noise, scored in phase 1 against the mechanical 2.5 ATR stop, not acted on.
+4. The bar to clear: the mechanical R2 rule is the floor. Jev's selection and exit judgment must lift the after-cost mean with a 90 percent lower bound above zero at 10 basis points a side, over at least 20 trading days and about 400 trades. If they do not, the mechanical rule is the product and Jev is a dashboard.
+5. Costs: assume 10 basis points a side on these names, not 5. They gap, their spreads are wider, and fills at the open of the next bar are optimistic.
 
 ## 2. What "use Jev" means here
 
@@ -111,9 +158,11 @@ Reused: jev-trader loop shape, late rule, dry-run flag, SSE schema, page layout;
 
 ## 8. Decisions for you
 
-- Option A (recommended): 100 names, 5-minute cadence, three horizons, shadow only, 20 trading days, gate as written in the plan. Cost under 30 USD a month.
-- Option B: literal jev-trader clone, 20 names, 30-minute horizon, buy or sell every bar, dry run. Fast to see. Almost sure to fail the gate.
+- Option A (recommended): the same-day momentum design of section 1b. Gap-up universe, Jev as 10:00 selector and 1-minute exit judge, one round trip per name per day, shadow book scored for 20 trading days against the mechanical R2 rule at 10 basis points a side. The 100-large-cap multi-horizon track from the first draft can run beside it for the same near-zero cost, since it answers a different question (does Jev see anything in bars alone). Cost under 30 USD a month.
+- Option B: literal jev-trader clone, buy or sell every bar, no abstaining. The data in section 1b says it loses at every cost level tested. Listed because it was the original ask.
 - Option C: do not build.
+
+The adversarial review in section 6 was run on the first draft (100 large caps, three horizons). The section 1b design changes the universe and the cadence; those changes were not adversarially reviewed and need a follow-up pass before any build.
 
 Sub-decisions if A or B: Jev through the gateway as you asked (needs the card) or a direct TypeSafe key (faster, no throttle); Railway for the worker as jev-trader does; whether STOCK-Auto's weekly review should report the shadow metrics.
 
@@ -125,4 +174,4 @@ No memory tool is available in this session. Record: "2026-09-21 Pre-Build Revie
 
 ## Appendix: data tables
 
-The CSV files next to this document hold the full tables: Horizon Baselines, Watchlist Baselines 30 Minute, Universe Expansion Baselines, Sample Size Power.
+The CSV files next to this document hold the full tables: Horizon Baselines, Watchlist Baselines 30 Minute, Universe Expansion Baselines, Sample Size Power, Movers Momentum Baselines, Exit Granularity Test.
