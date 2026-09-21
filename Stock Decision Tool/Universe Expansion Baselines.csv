@@ -1,0 +1,5 @@
+universe,horizon,decisions,naive_momentum_accuracy,ci90_low,ci90_high,median_abs_move_bps,mean_abs_move_bps,breakeven_accuracy_5bps_per_side,breakeven_accuracy_10bps_per_side,period,feed
+20 large caps,30 min,28581,0.4847,0.4798,0.4896,17.7,25.6,0.695,0.891,2026-08-20 to 2026-09-18,Alpaca IEX 5Min
+96 large caps (S&P 100 proxy),30 min,137714,0.4894,0.4872,0.4916,17.2,24.7,0.702,0.905,2026-08-20 to 2026-09-18,Alpaca IEX 5Min
+20 large caps,next-day close,400,0.5225,0.4814,0.5633,115.4,159.5,0.531,0.563,2026-08-20 to 2026-09-18,Alpaca IEX 5Min (close to close)
+99 large caps (S&P 100 proxy),next-day close,7387,0.4895,0.4799,0.4991,115.5,158.6,0.532,0.563,2026-06-01 to 2026-09-18,Alpaca SIP 1Day

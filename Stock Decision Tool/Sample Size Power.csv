@@ -1,0 +1,4 @@
+target_accuracy_vs_50pct,decisions_needed_alpha05_power80,trading_days_with_20_names_daily_horizon,trading_days_with_100_names_daily_horizon,trading_days_with_20_names_30min_horizon
+0.55,618,31,6,1
+0.53,1715,86,17,2
+0.52,3860,193,39,3
