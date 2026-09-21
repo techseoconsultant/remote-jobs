@@ -1,6 +1,14 @@
 # Pre-Build Review: Jev Stock Decision Tool
 
-Date: 2026-09-21 (Sunday evening Pacific; the next US open is Monday 2026-09-21 at 06:30 Pacific). Author: Claude, for Micah. Status: review only. No build code exists. Two adversarial review rounds: the first on the draft design (four reviewers, 64 findings, merged in section 6), the second on the revised design (running; its findings will be appended).
+Date: 2026-09-21 (Sunday evening Pacific; the next US open is Monday 2026-09-21 at 06:30 Pacific). Author: Claude, for Micah. Status: review only. No build code exists. Two adversarial review rounds: the first on the draft design (four reviewers, 64 findings, merged in section 6), the second on the revised design (four reviewers, 55 findings, merged in section 6b).
+
+## Decision statement, in your terms
+
+1. What can be built for Monday: a shadow logger with no order code in it. At 09:58 ET it logs the day's single-stock gap-ups; at 10:00 it asks Jev one score question per name; after the close and the next close it scores every answer on consolidated data. Nothing trades.
+2. What Friday will show: that the code runs, what a round trip really costs on these names from logged quotes, Jev's latency and error rate, and five days of rank correlations, which is not enough to conclude anything.
+3. What it costs: Jev under 1 USD a day; hosting about 5 USD a month; Alpaca 0 or 99 USD a month; your time to approve, plus this session's overage.
+4. What it cannot do: prove an edge in days, make dozens of trades a day on real single stocks (there were about 11 qualifying gap-ups a day and 3 rule-eligible entries a day in the last 21 sessions), or turn 1,000 USD into anything but a small loss on the rules tested.
+5. What you sign before the first call: a one-page pre-registration with the metric, the baseline, a 60-trading-day horizon, a futility stop only, and the sentence "no live capital, no size change and no STOCK-Auto lane before a named date".
 
 ## TLDR
 
@@ -8,10 +16,10 @@ Date: 2026-09-21 (Sunday evening Pacific; the next US open is Monday 2026-09-21 
 - Jev works through your gateway now. One probe call at 03:31 UTC: 141 ms at the provider, about 1 second end to end on a cold connection, cost 0.0000245 USD, 5 USD credit on the account. On an AAPL state it answered "higher at the close" with probability 0.51, "up in the next 30 minutes" 0.67, conviction 1.8 of 4. Speed and cost are as claimed. Accuracy is unknown, and every public market record of Jev is negative.
 - Your same-day momentum goal, tested on your data: the version that looked positive an hour ago was carried by leveraged single-stock ETFs and one micro-cap biotech. Half of the 1,208 mover-days were funds or leveraged products (605). On single stocks only, buy strength at 10:00 with a trailing stop lost 10 to 27 basis points a trade at 10 basis points a side, the opening range breakout with a range-low stop lost about 100 basis points a trade, and your literal rule (buy on a three-bar rise, sell on a three-bar fall, all day) lost 100 to 400 basis points a day. Measured half-spreads on these names at entry: median 10 basis points, mean 18, so 20 basis points a side is the realistic cost, not 10.
 - Faster is not better. One-minute exits were worse than five-minute exits. The average one-minute move on a mover is 19.6 basis points, about one round trip of cost. Jev's own one-decision-per-second record (jev-hft, Bitcoin) was eaten by fees. Watch by the second if you like; decide a few times a day.
-- Proof in days is not available. The per-trade swing is about 400 basis points against edges of a few basis points either way, so a five-day run of about 94 trades says nothing. Five days can prove the plumbing.
+- Proof in days is not available. The per-trade swing is about 400 basis points against edges of a few basis points either way, and trades on the same day move together, so the honest unit is the trading day. From the day-level figures, distinguishing the best rule's mean from zero at 90 percent confidence would take roughly 500 to 1,000 trading days, two to four years. Five days can prove the plumbing.
 - Volume: mechanically yes on Alpaca (no day-trade rule since 2026-06-04, 200 orders a minute). Margin on each trade: no. In every rule, most trades lost and a few large winners carried the mean, or nothing did.
 - What Jev improves: speed (about 0.14 to 0.26 seconds a decision versus 5 to 15 for Fable and minutes for a Claude session), cost (about 0.0001 USD a name-decision, 65 times cheaper than batched Fable, zero draw on your Claude quota) and measurement throughput. Not accuracy.
-- Remaining switches for Option A, all yours: rotate the gateway key that was pasted into chat (it is compromised in principle); a private GitHub repository for the tool plus a Railway account or a 5 USD VPS; the Alpaca 99 USD data plan (recommended, not required for a logger); a separate Alpaca paper account for the worker so it never shares STOCK-Auto's keys; your approval in your own words. A logger can be running by Monday's open if those arrive tonight, with the independent code review the skill requires before the first call.
+- Remaining switches for Option A, all yours: rotate the gateway key that was pasted into chat and set a monthly spend cap on the Vercel team; rotate STOCK-Auto's Alpaca keys and strip the secrets file from the zip on Drive, because this session read that zip and the keys therefore exist outside STOCK-Auto's environment; a private GitHub repository for the tool plus a Railway account or a 5 USD VPS; the Alpaca 99 USD data plan (recommended, not required for a logger); a separate Alpaca paper account for the worker so it never shares STOCK-Auto's keys; your approval in your own words. A logger can be running by Monday's open if those arrive tonight, with the independent code review the skill requires before the first call.
 - The review sits in a public fork (remote-jobs). It contains your plan capital, rules and results. Move it to a private repository before it grows further; that decision is yours.
 
 ## 1. Goal in one line
@@ -73,7 +81,7 @@ Usage: Jev under 1 USD a day at any scale discussed; Alpaca 0 or 99 USD a month;
 
 What 1,000 USD does: on single stocks, every rule tested is negative after measured costs, so the expected result of Option B is a loss of roughly 1 to 4 USD a day with daily swings of 14 to 17 USD and a better-than-even chance that the week ends down. The earlier projection of +0.70 USD a day rested on the leveraged-ETF and micro-cap winners and is withdrawn.
 
-Proof in days is not available: per-trade standard deviation about 400 basis points; showing a +12 basis point mean at 90 percent confidence needs about 5,600 trades, five days supply about 94. What five days can prove: data, Jev latency, the screen, scoring, the pre-registration discipline.
+Proof in days is not available. Trades on the same day are correlated, so the unit of evidence is the day. From the day-level mean and swing of the best rule (about +0.7 USD a day against 14 to 17 USD), rejecting zero at 90 percent confidence takes about 500 to 1,000 trading days. What five days can prove: data, Jev latency, the screen, scoring, the pre-registration discipline.
 
 First mover: there is no first-mover advantage in a signal that has not been shown to beat its costs. The first to move is the first to pay the spread.
 
@@ -180,6 +188,36 @@ Answered:
 - "Are we using Jev for quick, cheap decisions?" Yes. It is the only decision model, measured at 141 ms and 0.0000245 USD a call. Cheap and fast are settled. Right is not.
 - "The review sits in a public fork." True. Moving it is your decision.
 
+## 6b. Adversarial review, round two (revised design), merged
+
+Three lenses (statistician, execution engineer, risk officer) and a completeness critic reviewed sections 1b to 1d as they stood before the single-stock rerun. All four returned "build with changes" with eight findings marked fatal. Disclosure they asked for: these are lenses run by the same model in the same session, not independent human reviewers; the checks that are independent of this session's judgment are the reruns on data and the probes.
+
+Fixed with data after their findings:
+- "The floor was computed on a universe the design no longer uses." Rerun on single-stock gap-ups only: 241 symbol-days in 21 sessions, about 11 a day; the buy-strength rule qualified on 63, about 3 a day. At 10 basis points a side the mean is +0.6 (1.5 ATR) or -43.6 (2.5 ATR) basis points a trade, trimmed means -36 and -64, medians -62 and -67, and the day-clustered 90 percent intervals span roughly -400 to +400 basis points a day. Holding every single-stock gap-up from 10:00 to the close lost 60 basis points on average. There is no floor.
+- "Costs are unmeasured." Measured from consolidated quotes (section 1b): 10 basis points median half-spread at entry, 18 mean.
+- "Jev's response shape for a ranking is unverified." Verified: the score question returned a probability-weighted score and a per-level distribution; the boolean returned a probability; provider confidence came back in the metadata.
+- "Account type unresolved." The paper account is a margin account, multiplier 4, about 100,000 USD of paper equity, shorting enabled, no day-trade fields present. 89 percent of the gap-up names are fractionable on Alpaca.
+- "The 5,600-trade figure is not reproducible and uses the wrong unit." Replaced with day-based figures (500 to 1,000 trading days).
+- "Two different Option Bs." There is now one Option B, and it is not recommended.
+- "Screen ranking key unstated." The key is gap size at the open (open divided by prior close) for gap-ups and prior-day return for movers, both computed from daily bars known at 09:30; the dollar-volume filter uses the prior 20 sessions. No post-10:00 data enters the screen.
+
+Accepted as design changes for Option A:
+- Metric for Jev's ranking job: a score question (0 to 100) per name, labeled by the 10:00-to-close return minus SPY's return over the same window; primary statistic the daily cross-sectional Spearman correlation averaged over days and tested at the day level; incremental correlation after regressing out a free baseline of gap size, relative volume, the 09:30-to-10:00 return and distance from VWAP. Jev must beat the baseline, not zero.
+- Score every screened name every day in shadow, so the metric uses all 10 to 30 names rather than a selected few.
+- Horizon 60 trading days minimum; stop early only for futility.
+- The pullback question is asked once per pullback episode and labeled by what the price did afterward, not by whether a mechanical stop fired.
+- Log the consolidated quote at every decision minute so realized half-spreads are measured continuously.
+- Direct TypeSafe key as primary with the version identifier logged on every answer; gateway as fallback only.
+- Alpaca clock and calendar drive the schedule; halts are detected from the trading status stream and marked.
+- Postgres or a Railway volume rather than ephemeral storage; the browser connects to the worker's SSE directly; endpoints behind a bearer token; no account identifiers in any payload.
+
+Accepted as fatal for Option B and for a Monday order path:
+- Option B has negative expected value before the first trade and cannot be sized as modeled (52 USD positions, fractional orders, whole-share names). Removed as a recommendation; it appears only to record that it was asked for.
+- A fully built and reviewed execution system by 06:30 Pacific is not realistic; Option A ships with no order-submission code path at all.
+- The gap-up book is long, high-beta and correlated; the 21 sessions contain no market-wide selloff, so the tail is not the 25 USD worst day shown in section 1d.
+
+Untested, in order of how much it could change the answer: Jev's daily rank correlation on real gap-ups over 60 days (the purpose of Option A); the frozen rules replayed on January to July 2026 and on 2022; halt frequency among gap-ups from the trading status stream; realized fills versus the next-bar-open assumption.
+
 ## 7. Your four questions
 
 1. Best comparable example, row by row: section 3. The closest to your goal is Zarattini, Barbon and Aziz's stocks-in-play opening range breakout (7,000 stocks, 2016 to 2023, net of costs, positive as published). Our 21-session replay of a related rule on single stocks lost about 100 basis points a trade with a range-low stop. The closest to the tool is jev-hft: same model, paper scoring, signal absorbed by a free rule and eaten by fees.
@@ -189,7 +227,7 @@ Answered:
 
 ## 8. Decisions for you
 
-- Option A (the only one recommended if anything is built): research logger. Gap-up single stocks, funds excluded, price at least 10 USD, about 30 a day. At 10:00 ET one Jev request per name with the state in words, plus a separate headline request. Scored later on consolidated data at to-close and next-day-close horizons against SPY-excess returns and four controls. No orders, no live board, no STOCK-Auto hooks. 60 trading days. Expected outcome written down as fail. Cost under 30 USD a month plus optional 99 USD data. Can be logging by Monday's open if the repo, hosting, worker keys and your approval in your own words arrive tonight, with the independent code review before the first call.
+- Option A (the only one recommended if anything is built): research logger. Gap-up single stocks, funds excluded, price at least 10 USD, about 11 a day at the 3 percent gap threshold in the last 21 sessions (loosen to 2 percent if the count is too low, decided before the first run). At 10:00 ET one Jev request per name with the state in words, plus a separate headline request. Scored later on consolidated data at to-close and next-day-close horizons against SPY-excess returns and four controls. No orders, no live board, no STOCK-Auto hooks. 60 trading days. Expected outcome written down as fail. Cost under 30 USD a month plus optional 99 USD data. Can be logging by Monday's open if the repo, hosting, worker keys and your approval in your own words arrive tonight, with the independent code review before the first call.
 - Option B: 1,000 USD live from Monday on the one-round-trip rule. Not recommended. Every version tested loses after measured costs; expected about -1 to -4 USD a day, better-than-even chance of a losing week, and a live P&L line that will pressure the design.
 - Option C: do not build. STOCK-Auto's trend engine remains the only live logic.
 - Option D: a separate pre-build review of the published stocks-in-play opening range breakout as a mechanical strategy, replayed exactly as published over years, not weeks, before Jev is asked to improve it.
