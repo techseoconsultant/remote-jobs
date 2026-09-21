@@ -1,0 +1,13 @@
+instrument,horizon,decisions,mean_abs_move_bps,breakeven_at_1.25bps_rt,breakeven_at_3bps_rt,breakeven_at_10bps_rt,period,source
+SPY,5 min,1617,3.5,0.681,0.934,1.946,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+SPY,30 min,1512,8.5,0.574,0.677,1.090,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+SPY,1 hour,1386,11.4,0.555,0.631,0.937,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+QQQ,5 min,1617,5.1,0.622,0.792,1.474,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+QQQ,30 min,1512,12.1,0.552,0.624,0.912,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+QQQ,1 hour,1386,16.6,0.538,0.590,0.801,2026-08-20 to 2026-09-18,Alpaca SIP 5Min regular session
+BTC/USD,5 min,8637,8.3,0.575,0.681,1.102,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7
+BTC/USD,30 min,8632,20.0,0.531,0.575,0.750,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7
+BTC/USD,1 hour,8626,27.9,0.522,0.554,0.679,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7
+ETH/USD,5 min,8295,11.1,0.556,0.635,0.950,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7
+ETH/USD,30 min,8290,27.0,0.523,0.556,0.685,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7
+ETH/USD,1 hour,8284,37.5,0.517,0.540,0.633,2026-08-20 to 2026-09-18,Alpaca crypto 5Min 24/7

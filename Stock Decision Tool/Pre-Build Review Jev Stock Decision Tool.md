@@ -13,7 +13,8 @@ Date: 2026-09-21. Author: Claude, for Micah. Status: review only. No build code 
 - Cost is not the constraint. Jev costs 0.042 USD per million input tokens, so 100 names on 5-minute bars cost under 1 USD a day. Sample size is not the constraint either. Accuracy against costs is.
 - Three blockers before any code: add a card to the Vercel team, because every gateway call returns 403 today; rotate the gateway key that was pasted into chat; your Claude weekly limit resets 2026-09-22 at 23:00 UTC.
 - Decisions for you, as options. A (recommended): the same-day momentum design in section 1b. Universe = each day's gap-ups (about 30 names). Jev ranks them at 10:00 and judges each pullback on 1-minute bars. One round trip per name per day. Scored as a shadow book for 20 trading days against the mechanical rule it must beat. B: a literal jev-trader clone, buy or sell every bar with no abstaining. The data above says it loses at any cost level; it is here only because it is what was first asked for. C: do not build. Keep STOCK-Auto's trend engine as the only live logic.
-- Account limits you cannot design around: a margin account under 25,000 USD is limited to three day trades per five business days (pattern day trader rule). A cash account avoids that rule but each dollar trades once a day, and STOCK-Auto enforces settled cash only. Dozens of round trips a day need at least 25,000 USD in margin, and at a few hundred dollars a name the best rule above earns about 0.25 to 0.50 USD a trade. A profit every day is not a realistic target for this strategy; the best rule was positive on 10 to 13 of 21 days.
+- Dozens or hundreds of trades a day: the pattern day trader rule no longer blocks this. The SEC approved its elimination on 2026-04-14, it took effect 2026-06-04, and Alpaca replaced it with a real-time intraday margin framework the same day. Settled-cash-only is STOCK-Auto's own setting, not a regulation. What still binds is cost per round trip against move size, and it differs tenfold by venue: 10 to 20 basis points on stocks as a taker, 3 to 6 as a maker on IBKR, about 1 on micro index futures, 3 to 4 as a maker on crypto perpetuals. Section 1c lays out the options. Trade count is the last step: with a positive per-trade edge more trades mean more profit and less variance, and with no edge more trades mean more cost.
+- A profit every day is not a realistic target for any version tested; the best rule was positive on 10 to 13 of 21 days.
 
 ## 1. Goal in one line
 
@@ -64,6 +65,30 @@ What this means for the design:
 3. Jev's two jobs, both scorable: at 10:00, rank the gap-ups by the probability that the name closes above its 10:00 price, so the tool buys the top of the list instead of all of them; on every 1-minute bar while in a position, judge whether the pullback is a reversal or noise, scored in phase 1 against the mechanical 2.5 ATR stop, not acted on.
 4. The bar to clear: the mechanical R2 rule is the floor. Jev's selection and exit judgment must lift the after-cost mean with a 90 percent lower bound above zero at 10 basis points a side, over at least 20 trading days and about 400 trades. If they do not, the mechanical rule is the product and Jev is a dashboard.
 5. Costs: assume 10 basis points a side on these names, not 5. They gap, their spreads are wider, and fills at the open of the next bar are optimistic.
+
+## 1c. Options for dozens or hundreds of trades a day
+
+Correction to the first draft: the pattern day trader rule is gone. The SEC approved FINRA's amendments on 2026-04-14, they took effect 2026-06-04, brokers have until 2027-10-20 to finish implementing them, and Alpaca switched to its Intraday Margin Framework on 2026-06-04. Intraday buying power now follows real-time margin excess. The 25,000 USD floor is no longer a constraint on Alpaca. STOCK-Auto's settled-cash-only rule is a configuration choice in a margin account, not a regulation.
+
+The constraint that remains is arithmetic: breakeven accuracy = 50 percent + (round-trip cost) / (2 x mean absolute move at your horizon). Cost differs about tenfold across venues, so the venue sets how accurate Jev has to be. Move sizes below are measured from consolidated 5-minute bars, 2026-08-20 to 2026-09-18, for the instruments named.
+
+| Venue and role | Instruments | Round-trip cost | Mean 30-minute move | Breakeven, 30 min | Breakeven, 1 hour | What else you should know |
+|---|---|---|---|---|---|---|
+| Alpaca, US stocks, taker (today) | Any US stock | 10 to 20 bps: no commission, but spread plus slippage; more on gappers | 25.6 bps on the 20 large caps; larger on movers | 69.5 percent at 10 bps | 64.5 percent | No day-trade limit since 2026-06-04. Free data is IEX real time plus 15-minute delayed SIP at 200 requests a minute; the 99 USD a month Algo Trader Plus plan gives real-time SIP and 10,000 requests a minute and removes the sparse-name problem. |
+| IBKR Pro tiered, US stocks, maker (resting limit orders) | Any US stock | About 3 to 6 bps when filled: 0.0035 USD a share less an add-liquidity rebate, and the spread is earned, not paid | Same | About 56 to 62 percent | About 54 to 59 percent | Fills are not guaranteed and the ones you get skew adverse. API access. Costs still well below a taker's. |
+| Micro index futures (MES, MNQ) via IBKR or a futures broker | S&P 500 and Nasdaq 100 only, 2 to 4 instruments | About 1 to 1.5 bps: 0.25 to 0.91 USD a side commission plus a one-tick 1.25 USD spread on about 33,000 USD of notional | SPY 8.5 bps; QQQ 12.1 bps | 57.4 percent (SPY), 55.2 percent (QQQ) | 55.5 percent, 53.8 percent | Never had a day-trade rule. Day margin 40 to 50 USD a micro contract at some brokers. Trades 23 hours a day. Deepest, most competitive market there is. It is not "stocks going up"; it is the index. |
+| Hyperliquid perpetuals, maker | BTC, ETH, alts; HIP-3 stock perpetuals (NVDA, TSLA, indices) at double fees | Maker 1.5 bps a side (3 bps on stock perps), about 3 to 4 bps a round trip after adverse selection | BTC 20.0 bps; ETH 27.0 bps | About 55 percent (BTC) | About 53.6 percent | 24 hours a day, 7 days a week. This is the jev-trade and jev-trader pattern in its native habitat. Both public Jev trading records here are negative so far. |
+| Hyperliquid perpetuals, taker | Same | Taker 4.5 bps a side (9 bps on stock perps), about 9 to 10 bps a round trip | Same | About 70 percent (BTC) | 64.4 percent | Same venue, but crossing the spread puts you back at stock-like costs. |
+
+How to read the table for your goal:
+
+- If "stocks that are going up" is the point, the venue is IBKR Pro tiered with maker orders, or Alpaca with the one-round-trip rule from section 1b. IBKR roughly halves the cost; Alpaca is simpler and already wired into STOCK-Auto.
+- If "dozens to hundreds of fast decisions a day" is the point, micro index futures are the only venue where a 30-minute decision needs about 55 to 57 percent accuracy instead of 70. Jev can decide every 5 to 30 minutes for about 1 basis point a round trip, with no day-trade limit and a 23-hour session. The trade-off: two instruments, not hundreds of stocks, and the most efficient market on earth on the other side.
+- Crypto perpetuals as a maker are the cheapest 24-hour option and the one Jev was demonstrated on, but the demonstrations lost.
+
+Rate limits are not the constraint at any of these: Jev allows 1,200 requests a minute direct, Alpaca 200 orders a minute on the free plan, Hyperliquid 1,200 weighted requests a minute.
+
+Order of work, whichever venue: pick the venue whose cost matches the goal; prove the per-trade edge after that cost in shadow, with a 90 percent interval above zero; then raise the trade count. More trades multiply whatever the per-trade edge is, including a negative one.
 
 ## 2. What "use Jev" means here
 
@@ -161,8 +186,9 @@ Reused: jev-trader loop shape, late rule, dry-run flag, SSE schema, page layout;
 - Option A (recommended): the same-day momentum design of section 1b. Gap-up universe, Jev as 10:00 selector and 1-minute exit judge, one round trip per name per day, shadow book scored for 20 trading days against the mechanical R2 rule at 10 basis points a side. The 100-large-cap multi-horizon track from the first draft can run beside it for the same near-zero cost, since it answers a different question (does Jev see anything in bars alone). Cost under 30 USD a month.
 - Option B: literal jev-trader clone, buy or sell every bar, no abstaining. The data in section 1b says it loses at every cost level tested. Listed because it was the original ask.
 - Option C: do not build.
+- Venue sub-decision (section 1c): stay on Alpaca stocks (simplest, wired into STOCK-Auto, 10 to 20 bps a round trip), move stock execution to IBKR Pro tiered maker orders (about half the cost, uncertain fills), or run the fast-decision track on micro index futures (about 1 bp a round trip, two instruments). The shadow test can score more than one venue at once, since Jev costs almost nothing to ask.
 
-The adversarial review in section 6 was run on the first draft (100 large caps, three horizons). The section 1b design changes the universe and the cadence; those changes were not adversarially reviewed and need a follow-up pass before any build.
+The adversarial review in section 6 was run on the first draft (100 large caps, three horizons). Sections 1b and 1c change the universe, the cadence and the venue options; those changes were not adversarially reviewed and need a follow-up pass before any build.
 
 Sub-decisions if A or B: Jev through the gateway as you asked (needs the card) or a direct TypeSafe key (faster, no throttle); Railway for the worker as jev-trader does; whether STOCK-Auto's weekly review should report the shadow metrics.
 
@@ -174,4 +200,4 @@ No memory tool is available in this session. Record: "2026-09-21 Pre-Build Revie
 
 ## Appendix: data tables
 
-The CSV files next to this document hold the full tables: Horizon Baselines, Watchlist Baselines 30 Minute, Universe Expansion Baselines, Sample Size Power, Movers Momentum Baselines, Exit Granularity Test.
+The CSV files next to this document hold the full tables: Horizon Baselines, Watchlist Baselines 30 Minute, Universe Expansion Baselines, Sample Size Power, Movers Momentum Baselines, Exit Granularity Test, Venue Breakeven Table.
