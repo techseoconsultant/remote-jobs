@@ -91,6 +91,38 @@ Rate limits are not the constraint at any of these: Jev allows 1,200 requests a 
 
 Order of work, whichever venue: pick the venue whose cost matches the goal; prove the per-trade edge after that cost in shadow, with a 90 percent interval above zero; then raise the trade count. More trades multiply whatever the per-trade edge is, including a negative one.
 
+## 1d. Starting Monday 2026-09-22: what it takes, what it costs, what 1,000 USD does
+
+Requested: activate for the Monday open (06:30 Pacific), test immediately, prove it in three to five days, start with about 1,000 USD of real money.
+
+What must be switched on tonight, by you:
+
+1. Vercel: add a card to the team that owns the gateway key. Every call returns 403 until then. It also unlocks the 5 USD monthly credit, which covers Jev at under 1 USD a day. Optional but recommended: a direct TypeSafe API key (130 ms, 1,200 requests a minute, no gateway throttle).
+2. Alpaca: Algo Trader Plus, 99 USD a month, on the account whose keys STOCK-Auto uses. Real-time consolidated data and 10,000 requests a minute. Paper trading is enough for the shadow test. Real money needs the live account funded.
+3. A place to run the worker: a Railway account plus a private GitHub repository for the tool that this session can push to. The public remote-jobs fork is not the right home for it.
+4. Your approval, in your own words, of what to build. Option A: shadow only on paper. Option B: shadow plus 1,000 USD live on the one-round-trip rule with Jev picking the names. The build itself takes a few hours of this session, followed by an independent code review before it touches the market.
+
+Usage: Jev under 1 USD a day; Alpaca 99 USD a month; Railway about 5 USD a month; Vercel free tier. This session's Claude usage for the build and review is several hours of Fable at your overage rate.
+
+What 1,000 USD does on the rule that tested best, split equally across each day's trades (about 19 a day), from the same 21 sessions, at 10 basis points a side:
+
+| Measure | 1.5 ATR stop | 2.5 ATR stop |
+|---|---|---|
+| Average day | +0.69 USD | +0.81 USD |
+| Median day | -0.69 USD | -0.91 USD |
+| Daily swing (standard deviation) | 14 USD | 17 USD |
+| Best day, worst day | +37, -21 | +39, -25 |
+| Positive days | 10 of 21 | 9 of 21 |
+| Average 5-day week | +5 USD | +2 USD |
+| Range of 5-day weeks | -41 to +44 | -39 to +56 |
+| Chance a 5-day week loses, even if the rule is exactly this good | 48 percent | 49 percent |
+
+At 20 basis points a side, which is realistic for gappers taken at market, every one of those numbers turns negative: about -1.2 USD a day and a 59 to 60 percent chance the week loses.
+
+Proof in days is not available. The per-trade standard deviation is about 400 basis points against a mean of 6 to 12. Showing the mean is above zero at 90 percent confidence takes about 5,600 trades at 12 basis points, or 18,900 at 6. Five days supply about 94. Twenty days supply about 380. No run of days can prove this rule; only a much larger edge, or a much longer run, can. What five days can prove is that the plumbing works: data, Jev latency, the screen, the shadow fills, the scoring.
+
+First mover: there is no first-mover advantage in a signal that has not been shown to beat its costs. The first to move is the first to pay the spread.
+
 ## 2. What "use Jev" means here
 
 Jev is TypeSafe AI's System One decision model. It is on your Vercel AI Gateway as typesafe-ai/jev. It is not a chat model. It takes a state object of up to 32,000 tokens and typed questions (boolean, choice, score) and returns probabilities for all questions in one request, in parallel. It answers in about 130 milliseconds direct and about 260 milliseconds through the gateway. Input costs 0.042 USD per million tokens. Output is free.
