@@ -1,4 +1,4 @@
-# SOP: Momentum Continuation Entry (v2.0 draft for QA)
+# SOP: Momentum Continuation Entry (v2.1, frozen for the shadow test)
 
 Date: 2026-09-21. Author: Claude, for Micah. Status: DRAFT. Not approved. No live money. This SOP replaces the raw rule "it starts going up and keeps going up for a few minutes, so I buy." It was built from the 24 documents in New Research Sep 20th plus tests on 166 sessions of consolidated market data. Micah QAs this document, then approves or rejects it in his own words.
 
@@ -123,3 +123,20 @@ Check each line. Mark pass or fail. Your marks decide what changes before v2.1.
 ## 10. Change control
 
 This document is versioned in the Stock Decision Tool folder. Only Micah approves changes, in his own words. Every change: bump the version, restate the frozen parameters, restart the validation clock. Never tune parameters on the window being scored.
+
+
+## v2.1 changelog (2026-09-21, pre-clock, after the independent code review)
+
+Applied under Micah's blanket delegation of 2026-09-21 ("You can do all this for me"); listed here for his QA. No threshold changed: gap 3 percent, dollar volume 20 million, rvol 2.0, 2.5 ATR, 5 positions, 20 basis points a side, first-hour entries, 60-day window all stand. What changed is that every definition is now frozen to the exact backtested formula, and the reviewer's fatal findings are closed:
+
+1. Screen mechanics (Step 1): a wide premarket net (gap at least 1.5 percent at 09:25, top 100) feeds the binding test, which is the ACTUAL opening price at least 3 percent above the prior close, applied at 09:35 with retries to 09:40, top 30 by open gap. Live and replay use the same information; the open is never assumed before it prints.
+2. Market gate (Step 2): evaluated on the close of the first 5-minute SPY bar, strictly below minus 1 percent.
+3. Trigger definitions (Step 4), frozen as backtested: rising chain is four closes with three strict rises; rvol is the last three bars' volume over three times the median of up to 17 prior bars (excluding the run); session high on closes with ties passing; VWAP from typical price; ATR rolling over 12 bars. Earliest possible trigger is the bar ending 09:55. A name with a missing or stale last bar cannot trigger and its open position is not stop-evaluated on that bar (halt handling).
+4. Exit (Step 7): the trailing high seeds from the entry bar's close, as backtested.
+5. Daily stop (Step 9): implemented on an equal-weight shadow book at signal closes; on minus 3 percent everything flattens and entries stop.
+6. Records (Step 10): the consolidated bid and ask are logged at every live trigger; every trigger, taken or not, is scored at 30 minutes and at the close, raw and SPY-excess, so the pre-registered filter endpoints are computable. Not-taken reasons are recorded and slot-full names are not barred from later entry.
+7. Jev is asked on the bar ending 09:55, one request per name with per-call timeouts and error capture.
+8. F1 logs morning open interest plus the prior session's end-of-day snapshot, so overnight deltas accumulate from day two.
+9. Sessions run off the exchange calendar, including early closes; restarts recover state from the day's own logs instead of double-logging.
+
+The runner remains order-free: no order endpoint exists anywhere in the code.
