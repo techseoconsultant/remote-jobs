@@ -7,6 +7,7 @@ Date: 2026-09-21. Author: Claude, for Micah. Status: review only. No build code 
 - Verdict: build with changes. Build the tool as a scored shadow signal with no order path. Do not copy jev-trader's 30-second horizon or its maker-spread economics onto US stocks.
 - The kill assumption: Jev can call the direction of liquid US stocks above the cost breakeven. From 21 days of your own Alpaca data, a trade-every-bar tool needs 69.5 percent accuracy at 30 minutes, 59.7 percent to the close, and 53.1 percent to the next-day close, at 5 basis points per side. Every comparable says the intraday horizons fail. Only the daily horizon is open.
 - Jev's own live crypto record is negative: about 1.02 million dry-run decisions, a 45.6 percent hit rate on the last 1,000, and a running loss. The jev-hft study found that a free order-book rule explained almost all of Jev's short-term signal, and fees ate the profit.
+- What this improves: speed, cost, and measurement throughput. Jev answers in about a quarter second through the gateway, against 5 to 15 seconds for a Fable call and minutes for a Claude session run. A name-decision costs about 0.0001 USD on Jev, against about 0.007 USD on Fable when batched, so roughly 65 times cheaper, and it uses none of your Claude plan quota. That lets the tool score every name on every bar all day, about 7,800 decisions a day at 100 names, so the edge question gets a real answer in weeks. It does not improve accuracy. That is the unknown the test measures.
 - Cost is not the constraint. Jev costs 0.042 USD per million input tokens, so 100 names on 5-minute bars cost under 1 USD a day. Sample size is not the constraint either. Accuracy against costs is.
 - Three blockers before any code: add a card to the Vercel team, because every gateway call returns 403 today; rotate the gateway key that was pasted into chat; your Claude weekly limit resets 2026-09-22 at 23:00 UTC.
 - Decisions for you, as options. A (recommended): 100-name universe, Jev questions every 5-minute bar, scored at 30 minutes, the close, and the next-day close, shadow only, 20 trading days, then a go or no-go on the pre-registered gate. B: a literal jev-trader clone on 20 names with only the 30-minute horizon. It will almost surely fail the gate, but it is the fastest thing to look at. C: do not build. Keep STOCK-Auto's trend engine as the only live logic.
@@ -24,6 +25,24 @@ Jev is TypeSafe AI's System One decision model. It is on your Vercel AI Gateway 
 jev-trader (github.com/jarrodwatts/jev-trader) is the pattern: one Jev decision per Monad block, a post-only limit order one tick inside the touch so fills earn the spread, one order in flight, hold when late, a Bun server with SSE, and a Next.js page on Vercel.
 
 Two parts of that pattern do not transfer to US stocks. The 30-second horizon is not scorable against retail costs, because mean 5-minute moves on large caps are 10.9 basis points and a round trip costs about 10. The maker-spread economics do not transfer, because a retail order in US equities does not reliably earn the spread. The plan keeps the loop shape, the late rule, the dry-run flag, the SSE schema, and the page layout. It replaces the horizon and the cost model.
+
+## 2b. What this improves
+
+The comparison is against the two ways you could run a decision layer today: STOCK-Auto's retired path, where a scheduled Claude session wrote theses over a short list, and a frontier model such as Fable called on every bar.
+
+| Measure | Claude session (STOCK-Auto v10 path) | Fable on every bar (gateway) | Jev on every bar (this plan) |
+|---|---|---|---|
+| Time from bar close to decision | Minutes; a few session runs a day | 5 to 15 seconds per batched call | About 0.26 seconds through the gateway, 0.13 direct; all questions in one request, in parallel |
+| Names covered per day | About 12 shortlisted names, 1 to 2 passes | 20 names, 78 bars, if paid for | 100 names, 78 bars: about 7,800 name-decisions |
+| Cost per name-decision | Your Claude plan quota (exhausted this week) | About 0.007 USD batched, 0.03 USD unbatched | About 0.0001 USD (2,500 input tokens at 0.042 USD per million) |
+| Cost per day | Plan quota | About 10 USD for 20 names; about 50 USD for 100 | About 0.17 USD for 20 names; about 0.85 USD for 100 |
+| Cost per month | Plan quota | About 220 to 1,100 USD | About 4 to 25 USD, plus about 5 USD for the worker host |
+| Decisions scorable in 20 trading days | Dozens | About 31,000 at 20 names | About 156,000 at 100 names |
+| Accuracy | Measured at zero contribution in the replay | Unknown; frontier LLMs test near coin flip intraday | Unknown; the live crypto demo is at 45.6 percent. This is what the test measures. |
+
+Speed: about 20 to 60 times faster than a Fable call, and hundreds of times faster than a session run. Cost: about 65 times cheaper than batched Fable per decision, and zero draw on your Claude quota. Measurement: enough decisions in three to four weeks to accept or reject the edge with a confidence interval, which the v10 path never reached.
+
+The improvement stops at accuracy. Nothing here makes Jev right more often. It makes finding out fast and nearly free.
 
 ## 3. Benchmark, side by side
 
